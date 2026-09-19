@@ -9,12 +9,14 @@ import {
   classAdapter,
   eventAdapter,
   festivalAdapter,
+  reminderAdapter,
   parseAnniversaryDefinitions,
   parseAppointmentDefinitions,
   parseBirthdayDefinitions,
   parseClassDefinitions,
   parseEventDefinitions,
   parseFestivalDefinitions,
+  parseReminderDefinitions,
 } from '../modules';
 import {
   SillyTavernCalendarBridge,
@@ -70,6 +72,12 @@ async function bootstrap(): Promise<void> {
     adapter: classAdapter,
     path: 'calendar.modules.class',
     parser: parseClassDefinitions,
+  });
+
+  bridge.registerModule({
+    adapter: reminderAdapter,
+    path: 'calendar.modules.reminder',
+    parser: parseReminderDefinitions,
   });
 
   bridge.registerModule({

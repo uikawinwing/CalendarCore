@@ -4,3 +4,4 @@ export * from './appointment';
 export * from './birthday';
 export * from './anniversary';
 export * from './class';
+export * from './reminder';
