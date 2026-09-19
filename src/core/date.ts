@@ -2,7 +2,11 @@ import {
   gregorianCalendarSystem,
   type CalendarSystem,
 } from './calendar-system';
-import type { CalendarDate, CalendarDateRange } from './types';
+import type {
+  CalendarDate,
+  CalendarDateRange,
+  CalendarWeekAnchor,
+} from './types';
 
 function assertInteger(value: number, label: string): void {
   if (!Number.isInteger(value)) {
@@ -19,6 +23,20 @@ function assertCalendarSystem(system: CalendarSystem, year: number): void {
   if (!Number.isInteger(monthsInYear) || monthsInYear < 1) {
     throw new RangeError(`Calendar system "${system.id}" returned an invalid month count`);
   }
+}
+
+function readDaysInMonth(
+  system: CalendarSystem,
+  year: number,
+  month: number,
+): number {
+  const days = system.daysInMonth(year, month);
+  if (!Number.isInteger(days) || days < 1) {
+    throw new RangeError(
+      `Calendar system "${system.id}" returned an invalid day count`,
+    );
+  }
+  return days;
 }
 
 export function cloneCalendarDate(date: CalendarDate): CalendarDate {
@@ -46,10 +64,7 @@ export function assertValidCalendarDate(
     );
   }
 
-  const daysInMonth = system.daysInMonth(date.year, date.month);
-  if (!Number.isInteger(daysInMonth) || daysInMonth < 1) {
-    throw new RangeError(`Calendar system "${system.id}" returned an invalid day count`);
-  }
+  const daysInMonth = readDaysInMonth(system, date.year, date.month);
 
   if (date.day < 1 || date.day > daysInMonth) {
     throw new RangeError(
@@ -117,7 +132,7 @@ export function addCalendarDays(
     let remaining = delta;
 
     while (remaining > 0) {
-      const daysInMonth = system.daysInMonth(cursor.year, cursor.month);
+      const daysInMonth = readDaysInMonth(system, cursor.year, cursor.month);
       const daysAfterCursor = daysInMonth - cursor.day;
 
       if (remaining <= daysAfterCursor) {
@@ -145,7 +160,7 @@ export function addCalendarDays(
     const month = previousMonth(cursor, system);
     cursor = {
       ...month,
-      day: system.daysInMonth(month.year, month.month),
+      day: readDaysInMonth(system, month.year, month.month),
     };
   }
 
@@ -169,7 +184,7 @@ export function addCalendarMonths(
 
   return {
     ...cursor,
-    day: Math.min(date.day, system.daysInMonth(cursor.year, cursor.month)),
+    day: Math.min(date.day, readDaysInMonth(system, cursor.year, cursor.month)),
   };
 }
 
@@ -190,8 +205,31 @@ export function addCalendarYears(
   return {
     year,
     month,
-    day: Math.min(date.day, system.daysInMonth(year, month)),
+    day: Math.min(date.day, readDaysInMonth(system, year, month)),
   };
+}
+
+function toCalendarOrdinal(
+  date: CalendarDate,
+  system: CalendarSystem,
+): number {
+  assertValidCalendarDate(date, system);
+
+  let total = 0;
+
+  for (let year = 1; year < date.year; year += 1) {
+    assertCalendarSystem(system, year);
+    const months = system.monthsInYear(year);
+    for (let month = 1; month <= months; month += 1) {
+      total += readDaysInMonth(system, year, month);
+    }
+  }
+
+  for (let month = 1; month < date.month; month += 1) {
+    total += readDaysInMonth(system, date.year, month);
+  }
+
+  return total + date.day - 1;
 }
 
 export function getCalendarDayDistance(
@@ -199,24 +237,32 @@ export function getCalendarDayDistance(
   to: CalendarDate,
   system: CalendarSystem = gregorianCalendarSystem,
 ): number {
-  assertValidCalendarDate(from, system);
-  assertValidCalendarDate(to, system);
+  return toCalendarOrdinal(to, system) - toCalendarOrdinal(from, system);
+}
 
-  const comparison = compareCalendarDate(from, to);
-  if (comparison === 0) {
-    return 0;
+export function getCalendarWeekday(
+  date: CalendarDate,
+  anchor: CalendarWeekAnchor,
+  system: CalendarSystem = gregorianCalendarSystem,
+): number {
+  assertValidCalendarDate(anchor.date, system);
+  assertValidCalendarDate(date, system);
+
+  if (
+    !Number.isInteger(anchor.weekday) ||
+    anchor.weekday < 0 ||
+    anchor.weekday >= system.daysInWeek
+  ) {
+    throw new RangeError(
+      `weekday must be between 0 and ${system.daysInWeek - 1}`,
+    );
   }
 
-  const direction = comparison < 0 ? 1 : -1;
-  let distance = 0;
-  let cursor = cloneCalendarDate(from);
+  const raw =
+    anchor.weekday +
+    getCalendarDayDistance(anchor.date, date, system);
 
-  while (!isSameCalendarDate(cursor, to)) {
-    cursor = addCalendarDays(cursor, direction, system);
-    distance += direction;
-  }
-
-  return distance;
+  return ((raw % system.daysInWeek) + system.daysInWeek) % system.daysInWeek;
 }
 
 export function ensureCalendarRangeOrder(range: CalendarDateRange): CalendarDateRange {

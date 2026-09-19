@@ -9,6 +9,11 @@ export interface CalendarDateRange {
   end: CalendarDate;
 }
 
+export interface CalendarWeekAnchor {
+  date: CalendarDate;
+  weekday: number;
+}
+
 export interface CalendarClock {
   hour: number;
   minute: number;
