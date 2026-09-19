@@ -1,0 +1,16 @@
+{
+  "name": "@uikawinwing/calendar-core",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test checks/core-contract.test.ts checks/date.test.ts checks/recurrence.test.ts checks/projection.test.ts checks/festival.test.ts checks/boundary.test.ts",
+    "check": "pnpm run typecheck && pnpm test"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0"
+  }
+}
