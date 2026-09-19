@@ -88,6 +88,56 @@ test('weekly recurrence respects the calendar system week length', () => {
   );
 });
 
+test('recurrence until is inclusive and stops future occurrences', () => {
+  const event: CalendarEvent = {
+    id: 'term-class',
+    moduleId: 'fixture',
+    kind: 'fixture',
+    title: 'Weekly class',
+    start: { date: { year: 2026, month: 9, day: 1 } },
+    recurrence: {
+      frequency: 'weekly',
+      until: { year: 2026, month: 9, day: 22 },
+    },
+  };
+
+  assert.deepEqual(
+    expandCalendarEventOccurrences(event, {
+      start: { year: 2026, month: 9, day: 1 },
+      end: { year: 2026, month: 10, day: 31 },
+    }).map(value => value.start.date),
+    [
+      { year: 2026, month: 9, day: 1 },
+      { year: 2026, month: 9, day: 8 },
+      { year: 2026, month: 9, day: 15 },
+      { year: 2026, month: 9, day: 22 },
+    ],
+  );
+});
+
+test('recurrence until before the event start is rejected', () => {
+  const event: CalendarEvent = {
+    id: 'bad-until',
+    moduleId: 'fixture',
+    kind: 'fixture',
+    title: 'Bad',
+    start: { date: { year: 2026, month: 9, day: 10 } },
+    recurrence: {
+      frequency: 'weekly',
+      until: { year: 2026, month: 9, day: 1 },
+    },
+  };
+
+  assert.throws(
+    () =>
+      expandCalendarEventOccurrences(event, {
+        start: { year: 2026, month: 9, day: 1 },
+        end: { year: 2026, month: 10, day: 1 },
+      }),
+    /until must not be before event start/,
+  );
+});
+
 test('recurring end dates keep their own calendar anchor', () => {
   const crossYearFestival: CalendarEvent = {
     id: 'cross-year',

@@ -29,6 +29,7 @@ export type CalendarRecurrenceFrequency = 'daily' | 'weekly' | 'monthly' | 'year
 export interface CalendarRecurrence {
   frequency: CalendarRecurrenceFrequency;
   interval?: number;
+  until?: CalendarDate;
 }
 
 export interface CalendarEvent {

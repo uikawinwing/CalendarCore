@@ -6,11 +6,13 @@ import {
   anniversaryAdapter,
   appointmentAdapter,
   birthdayAdapter,
+  classAdapter,
   eventAdapter,
   festivalAdapter,
   parseAnniversaryDefinitions,
   parseAppointmentDefinitions,
   parseBirthdayDefinitions,
+  parseClassDefinitions,
   parseEventDefinitions,
   parseFestivalDefinitions,
 } from '../modules';
@@ -62,6 +64,12 @@ async function bootstrap(): Promise<void> {
     adapter: anniversaryAdapter,
     path: 'calendar.modules.anniversary',
     parser: parseAnniversaryDefinitions,
+  });
+
+  bridge.registerModule({
+    adapter: classAdapter,
+    path: 'calendar.modules.class',
+    parser: parseClassDefinitions,
   });
 
   bridge.registerModule({

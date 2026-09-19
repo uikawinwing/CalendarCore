@@ -140,13 +140,25 @@ export function parseCalendarRecurrence(
     return null;
   }
 
+  const recurrence: CalendarRecurrence = {
+    frequency,
+  };
+
   if ('interval' in value && typeof value.interval !== 'undefined') {
     const interval = readPositiveInteger(value.interval);
     if (!interval) {
       return null;
     }
-    return { frequency, interval };
+    recurrence.interval = interval;
   }
 
-  return { frequency };
+  if ('until' in value && typeof value.until !== 'undefined') {
+    const until = parseCalendarDate(value.until);
+    if (!until) {
+      return null;
+    }
+    recurrence.until = until;
+  }
+
+  return recurrence;
 }
