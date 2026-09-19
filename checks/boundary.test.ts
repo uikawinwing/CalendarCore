@@ -31,27 +31,47 @@ test('Core never imports outer layers or business modules', () => {
   assert.deepEqual(
     findImports(
       join(srcRoot, 'core'),
-      /from\s+['"][^'"]*(?:modules|app|host)(?:\/|['"])/,
+      /from\s+['"][^'"]*(?:modules|app|host|ui|renderers)(?:\/|['"])/,
     ),
     [],
   );
 });
 
-test('business modules never import App or Host', () => {
+test('business modules never import App, Host, UI or renderers', () => {
   assert.deepEqual(
     findImports(
       join(srcRoot, 'modules'),
-      /from\s+['"][^'"]*(?:app|host)(?:\/|['"])/,
+      /from\s+['"][^'"]*(?:app|host|ui|renderers)(?:\/|['"])/,
     ),
     [],
   );
 });
 
-test('App never imports Host', () => {
+test('App never imports Host, UI or renderers', () => {
   assert.deepEqual(
     findImports(
       join(srcRoot, 'app'),
-      /from\s+['"][^'"]*host(?:\/|['"])/,
+      /from\s+['"][^'"]*(?:host|ui|renderers)(?:\/|['"])/,
+    ),
+    [],
+  );
+});
+
+test('Host never imports UI or renderers', () => {
+  assert.deepEqual(
+    findImports(
+      join(srcRoot, 'host'),
+      /from\s+['"][^'"]*(?:ui|renderers)(?:\/|['"])/,
+    ),
+    [],
+  );
+});
+
+test('renderers depend on UI contracts, not app/host/modules/core directly', () => {
+  assert.deepEqual(
+    findImports(
+      join(srcRoot, 'renderers'),
+      /from\s+['"][^'"]*(?:app|host|modules|core)(?:\/|['"])/,
     ),
     [],
   );

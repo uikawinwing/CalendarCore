@@ -1,12 +1,14 @@
 import type {
-  CalendarDate,
+  CalendarDate as CoreCalendarDate,
   CalendarDateRange,
   CalendarOccurrence,
 } from '../core';
 
+export type { CalendarDate } from '../core';
+
 export interface CalendarMonthCell {
   key: string;
-  date: CalendarDate;
+  date: CoreCalendarDate;
   weekday: number;
   inCurrentMonth: boolean;
   isToday: boolean;
