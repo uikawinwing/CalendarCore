@@ -10,9 +10,10 @@ This file is a migration map, not a copy checklist.
 - [x] Calendar date primitives and pure date arithmetic
 - [x] Recurrence expansion
 - [x] Range query / occurrence projection
+- [x] Day / agenda-neutral projection
 - [x] First real external module: Festival
-- [ ] Legacy Worldbook -> Festival bridge
-- [ ] Host package boundary
+- [ ] New host/app boundary
+- [ ] New UI layer
 
 ## Extract as pure core candidates
 
@@ -21,6 +22,7 @@ The useful legacy concepts have been re-derived behind the new contract instead 
 - `DatePoint` / `DateRange` became `CalendarDate` / `CalendarDateRange`
 - recurring-event expansion became `expandCalendarEventOccurrences`
 - range lookup became `queryCalendarOccurrences`
+- day grouping became `projectCalendarDays`
 
 The old date helper hard-coded Gregorian rules and mixed date math with parsing, era aliases, Chinese numerals, weekday labels, and native `Date`. The new date layer separates those concerns and accepts an injected `CalendarSystem`.
 
@@ -40,11 +42,10 @@ It owns:
 It does not own:
 
 - Worldbook reads
-- Chinese legacy source keys such as `名称`, `开始`, `周期`
 - reminder injection
 - visual rendering
 
-Those belong to a later host/legacy bridge.
+The legacy Chinese Worldbook shape is reference material only. This rebuild does **not** add a backward-compatibility bridge.
 
 ## Host integration stays outside core
 
@@ -58,7 +59,7 @@ Do not move these into `src/core`:
 - DOM / iframe / Vue rendering
 - installation/diagnostic flows
 
-A future host package may depend on CalendarCore, never the reverse.
+A future host/app layer may depend on CalendarCore, never the reverse.
 
 ## Legacy coupling we are intentionally removing
 
@@ -74,6 +75,17 @@ The new core must not gain imports or branches for named business modules such a
 
 ## First migration gate
 
-The first milestone is complete when unrelated fixture schemas normalize through registered adapters without any change to `src/core`.
+The engine-side migration gate is complete when unrelated module schemas can become events, expand into occurrences, be queried by range, and be projected into days without changing `src/core`.
 
-The current fixture set covers Festival, Class, Appointment, and Ellia ticket. The Festival fixture has now been replaced by a real module implementation.
+That chain now exists:
+
+```
+module adapter
+  -> CalendarEvent
+  -> recurrence expansion
+  -> CalendarOccurrence
+  -> range query
+  -> day projection
+```
+
+The next work belongs in the new host/app layer rather than adding more legacy behavior to Core.

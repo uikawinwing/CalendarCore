@@ -46,6 +46,11 @@ export interface CalendarOccurrence {
   end?: CalendarPoint;
 }
 
+export interface CalendarDayProjection {
+  date: CalendarDate;
+  occurrences: CalendarOccurrence[];
+}
+
 export interface CalendarModuleAdapter<TInput> {
   readonly moduleId: string;
   normalize(input: TInput): CalendarEvent | CalendarEvent[];
