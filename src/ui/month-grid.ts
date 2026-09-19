@@ -13,6 +13,7 @@ import {
   type CalendarSystem,
   type CalendarWeekAnchor,
 } from '../core';
+import { buildCalendarDayViewModel } from './day-detail';
 import type {
   CalendarMonthCell,
   CalendarMonthViewModel,
@@ -152,11 +153,21 @@ export function buildCalendarMonthViewModel(
       };
     });
 
+  const selectedCell = cells.find(cell => cell.isSelected);
+  const selectedDay = selectedCell
+    ? buildCalendarDayViewModel(
+        selectedCell.date,
+        selectedCell.occurrences,
+        selectedCell.isToday,
+      )
+    : undefined;
+
   return {
     year: options.year,
     month: options.month,
     columns: system.daysInWeek,
     range,
     cells,
+    ...(selectedDay ? { selectedDay } : {}),
   };
 }

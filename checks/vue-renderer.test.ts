@@ -85,13 +85,18 @@ test('month session loads, selects and navigates without Vue owning app logic', 
     model.cells.find(cell => cell.isSelected)?.key,
     '2026-09-19',
   );
+  assert.equal(
+    model.selectedDay?.occurrences[0]?.eventId,
+    'meeting',
+  );
 
   model = await session.navigateMonths(1);
   assert.equal(model.year, 2026);
   assert.equal(model.month, 10);
+  assert.equal(model.selectedDay, undefined);
 });
 
-test('Vue month renderer emits accessible static calendar markup', async () => {
+test('Vue month renderer emits generic selected-day details', async () => {
   const app = new CalendarApp({
     timeSource: {
       getCurrentPoint: () => ({
@@ -154,7 +159,17 @@ test('Vue month renderer emits accessible static calendar markup', async () => {
     html,
     /data-calendar-date="2026-09-19"/,
   );
+  assert.match(
+    html,
+    /data-day-detail-date="2026-09-19"/,
+  );
+  assert.match(
+    html,
+    /data-detail-event-id="meeting"/,
+  );
+  assert.match(html, /appointment/);
   assert.match(html, /Meeting/);
+  assert.match(html, /All day/);
   assert.match(html, /aria-pressed="true"/);
   assert.match(html, /Previous month/);
   assert.match(html, /Next month/);

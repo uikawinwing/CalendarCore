@@ -47,6 +47,17 @@ export const CALENDAR_MONTH_VIEW_CSS = String.raw`
   opacity: 0.35;
 }
 
+.cc-calendar-month__body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(12rem, 16rem);
+  gap: 0.75rem;
+  align-items: start;
+}
+
+.cc-calendar-month__calendar {
+  min-width: 0;
+}
+
 .cc-calendar-month__weekdays,
 .cc-calendar-month__grid {
   display: grid;
@@ -139,6 +150,79 @@ export const CALENDAR_MONTH_VIEW_CSS = String.raw`
   opacity: 0.6;
 }
 
+.cc-day-detail {
+  min-width: 0;
+  padding: 0.75rem;
+  border: 1px solid color-mix(in srgb, currentColor 22%, transparent);
+  border-radius: 0.8rem;
+}
+
+.cc-day-detail--empty,
+.cc-day-detail__empty-state {
+  opacity: 0.55;
+}
+
+.cc-day-detail__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.65rem;
+}
+
+.cc-day-detail__title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 650;
+}
+
+.cc-day-detail__today {
+  padding: 0.12rem 0.35rem;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-size: 0.65rem;
+  opacity: 0.65;
+}
+
+.cc-day-detail__events {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.cc-day-detail__event {
+  min-width: 0;
+  padding: 0.55rem;
+  border-radius: 0.55rem;
+  background: color-mix(in srgb, currentColor 8%, transparent);
+}
+
+.cc-day-detail__event-topline {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+  font-size: 0.66rem;
+  opacity: 0.62;
+}
+
+.cc-day-detail__module {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cc-day-detail__event-title {
+  overflow-wrap: anywhere;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+@media (max-width: 760px) {
+  .cc-calendar-month__body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 @media (max-width: 640px) {
   .cc-calendar-month__header {
     margin-bottom: 0.5rem;
@@ -156,6 +240,10 @@ export const CALENDAR_MONTH_VIEW_CSS = String.raw`
   .cc-month-event {
     padding: 0.12rem 0.2rem;
     font-size: 0.64rem;
+  }
+
+  .cc-day-detail {
+    padding: 0.6rem;
   }
 }
 `;
