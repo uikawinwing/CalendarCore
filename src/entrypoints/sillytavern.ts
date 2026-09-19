@@ -3,9 +3,13 @@ import {
   readValueAtPath,
 } from '../host/sillytavern';
 import {
+  appointmentAdapter,
+  eventAdapter,
   festivalAdapter,
+  parseAppointmentDefinitions,
+  parseEventDefinitions,
   parseFestivalDefinitions,
-} from '../modules/festival';
+} from '../modules';
 import {
   SillyTavernCalendarBridge,
   mountSillyTavernCalendarShell,
@@ -30,6 +34,18 @@ async function bootstrap(): Promise<void> {
   const bridge = new SillyTavernCalendarBridge({
     runtime,
     timePath: 'calendar.now',
+  });
+
+  bridge.registerModule({
+    adapter: eventAdapter,
+    path: 'calendar.modules.event',
+    parser: parseEventDefinitions,
+  });
+
+  bridge.registerModule({
+    adapter: appointmentAdapter,
+    path: 'calendar.modules.appointment',
+    parser: parseAppointmentDefinitions,
   });
 
   bridge.registerModule({

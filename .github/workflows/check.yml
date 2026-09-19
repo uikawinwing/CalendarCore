@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - development
       - rebuild/**
     paths-ignore:
       - dist/**
@@ -27,7 +28,13 @@ jobs:
           node-version: 24
 
       - name: Install dependencies
-        run: pnpm install
+        shell: bash
+        run: |
+          if [[ -f pnpm-lock.yaml ]]; then
+            pnpm install --frozen-lockfile
+          else
+            pnpm install
+          fi
 
       - name: Check
         run: pnpm check
