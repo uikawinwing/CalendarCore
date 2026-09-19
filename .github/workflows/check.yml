@@ -5,6 +5,8 @@ on:
     branches:
       - main
       - rebuild/**
+    paths-ignore:
+      - dist/**
   pull_request:
 
 jobs:
