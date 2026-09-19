@@ -126,8 +126,23 @@ export function expandCalendarEventOccurrences(
 
   getRecurrenceInterval(event);
 
+  const recurrenceUntil = event.recurrence.until;
+  if (recurrenceUntil) {
+    assertValidCalendarDate(recurrenceUntil, system);
+
+    if (compareCalendarDate(recurrenceUntil, event.start.date) < 0) {
+      throw new RangeError(
+        'Calendar recurrence until must not be before event start',
+      );
+    }
+  }
+
   if (!Number.isInteger(system.daysInWeek) || system.daysInWeek < 1) {
-    throw new RangeError(`Calendar system "${system.id}" returned an invalid week length`);
+    throw new RangeError(
+      'Calendar system "' +
+        system.id +
+        '" returned an invalid week length',
+    );
   }
 
   const occurrences: CalendarOccurrence[] = [];
@@ -137,6 +152,13 @@ export function expandCalendarEventOccurrences(
     const occurrence = createOccurrence(event, occurrenceIndex, system);
 
     if (compareCalendarDate(occurrence.start.date, targetRange.end) > 0) {
+      break;
+    }
+
+    if (
+      recurrenceUntil &&
+      compareCalendarDate(occurrence.start.date, recurrenceUntil) > 0
+    ) {
       break;
     }
 
