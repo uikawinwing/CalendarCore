@@ -4,6 +4,11 @@ export interface CalendarDate {
   day: number;
 }
 
+export interface CalendarDateRange {
+  start: CalendarDate;
+  end: CalendarDate;
+}
+
 export interface CalendarClock {
   hour: number;
   minute: number;

@@ -4,15 +4,26 @@ Source: `uikawinwing/calendar_float`
 
 This file is a migration map, not a copy checklist.
 
-## Extract later as pure core candidates
+## Migration status
+
+- [x] Event/module normalization contract
+- [x] Calendar date primitives and pure date arithmetic
+- [ ] Recurrence expansion
+- [ ] Range querying / agenda projection
+- [ ] Host package boundary
+- [ ] First real external module
+
+## Extract as pure core candidates
 
 These concepts are useful, but should be re-derived behind the new contract instead of copied wholesale:
 
-- `DatePoint` / `DateRange` style fantasy-calendar coordinates
-- pure date arithmetic and range overlap helpers
 - recurrence expansion behavior
 - month/day query behavior
 - focused regression checks for pure calculations
+
+The legacy `DatePoint` / `DateRange` idea has been migrated as `CalendarDate` / `CalendarDateRange`.
+
+The old date helper hard-coded Gregorian rules and mixed date math with parsing, era aliases, Chinese numerals, weekday labels, and native `Date`. The new date layer separates those concerns and accepts an injected `CalendarSystem`.
 
 ## Rewrite as external modules/adapters
 
@@ -47,6 +58,8 @@ A future host package may depend on CalendarCore, never the reverse.
 Legacy `types.ts` mixed domain data, festivals, archive policy, view models, UI refs, and widget state in one file.
 
 Legacy `calendar-view-model/model.ts` directly normalized festivals and used festival-specific visual/location logic.
+
+Legacy `date.ts` mixed pure calendar arithmetic with parsing and presentation-specific rules.
 
 The new core must not gain imports or branches for named business modules such as `festival`, `class`, `quest`, or `ellia-ticket`.
 
