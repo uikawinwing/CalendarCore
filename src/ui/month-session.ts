@@ -124,6 +124,18 @@ export class CalendarMonthSession {
     return this.model;
   }
 
+  clearSelectedDate(): CalendarMonthViewModel {
+    if (!this.snapshot) {
+      throw new Error(
+        'CalendarMonthSession must be loaded before clearing selection',
+      );
+    }
+
+    this.selectedDate = undefined;
+    this.model = this.buildModel(this.snapshot);
+    return this.model;
+  }
+
   private buildModel(
     snapshot: CalendarAppSnapshot,
   ): CalendarMonthViewModel {

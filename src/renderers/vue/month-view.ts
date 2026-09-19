@@ -80,7 +80,7 @@ function formatOccurrenceTime(
   occurrence: CalendarDayOccurrenceView,
 ): string {
   if (occurrence.allDay) {
-    return 'All day';
+    return '全天';
   }
 
   const start = formatClock(occurrence.start.time);
@@ -97,7 +97,7 @@ function formatOccurrenceTime(
     return `${start}–${end}`;
   }
 
-  return start || 'Timed event';
+  return start || '定时事件';
 }
 
 function renderDayOccurrence(
@@ -134,12 +134,31 @@ function renderDayOccurrence(
         { class: 'cc-day-detail__event-title' },
         occurrence.title,
       ),
+      ...(occurrence.tags.length
+        ? [
+            h(
+              'div',
+              { class: 'cc-day-detail__tags' },
+              occurrence.tags.map(tag =>
+                h(
+                  'span',
+                  {
+                    key: tag,
+                    class: 'cc-day-detail__tag',
+                  },
+                  tag,
+                ),
+              ),
+            ),
+          ]
+        : []),
     ],
   );
 }
 
 function renderDayDetail(
   day: CalendarDayViewModel | undefined,
+  onBack: () => void,
 ) {
   if (!day) {
     return h(
@@ -148,7 +167,7 @@ function renderDayDetail(
         class: 'cc-day-detail cc-day-detail--empty',
         'aria-live': 'polite',
       },
-      'Select a day',
+      '选择日期查看详情',
     );
   }
 
@@ -165,16 +184,37 @@ function renderDayDetail(
         { class: 'cc-day-detail__header' },
         [
           h(
-            'h3',
-            { class: 'cc-day-detail__title' },
-            `${day.date.year} / ${day.date.month} / ${day.date.day}`,
+            'button',
+            {
+              type: 'button',
+              class: 'cc-day-detail__back',
+              'aria-label': '返回月历',
+              onClick: onBack,
+            },
+            '‹ 返回月历',
+          ),
+          h(
+            'div',
+            { class: 'cc-day-detail__heading' },
+            [
+              h(
+                'div',
+                { class: 'cc-day-detail__eyebrow' },
+                '当日事件',
+              ),
+              h(
+                'h3',
+                { class: 'cc-day-detail__title' },
+                `${day.date.year} 年 ${day.date.month} 月 ${day.date.day} 日`,
+              ),
+            ],
           ),
           ...(day.isToday
             ? [
                 h(
                   'span',
                   { class: 'cc-day-detail__today' },
-                  'Today',
+                  '今天',
                 ),
               ]
             : []),
@@ -189,7 +229,7 @@ function renderDayDetail(
         : h(
             'div',
             { class: 'cc-day-detail__empty-state' },
-            'No events',
+            '暂无事件',
           ),
     ],
   );
@@ -219,6 +259,7 @@ export const CalendarMonthView = defineComponent({
 
   emits: {
     selectDate: (_date: CalendarDate) => true,
+    clearSelection: () => true,
     previousMonth: () => true,
     nextMonth: () => true,
   },
@@ -244,33 +285,52 @@ export const CalendarMonthView = defineComponent({
             { class: 'cc-calendar-month__header' },
             [
               h(
-                'button',
-                {
-                  type: 'button',
-                  class: 'cc-calendar-month__nav',
-                  disabled: props.busy,
-                  'aria-label': 'Previous month',
-                  onClick: () => emit('previousMonth'),
-                },
-                '‹',
+                'div',
+                { class: 'cc-calendar-month__header-copy' },
+                [
+                  h(
+                    'div',
+                    { class: 'cc-calendar-month__kicker' },
+                    'CALENDAR',
+                  ),
+                  h(
+                    'h2',
+                    {
+                      class: 'cc-calendar-month__title',
+                    },
+                    `${props.model.year} 年 ${props.model.month} 月`,
+                  ),
+                ],
               ),
               h(
-                'h2',
-                {
-                  class: 'cc-calendar-month__title',
-                },
-                `${props.model.year} / ${props.model.month}`,
-              ),
-              h(
-                'button',
-                {
-                  type: 'button',
-                  class: 'cc-calendar-month__nav',
-                  disabled: props.busy,
-                  'aria-label': 'Next month',
-                  onClick: () => emit('nextMonth'),
-                },
-                '›',
+                'div',
+                { class: 'cc-calendar-month__nav-group' },
+                [
+                  h(
+                    'button',
+                    {
+                      type: 'button',
+                      class: 'cc-calendar-month__nav',
+                      disabled: props.busy,
+                      'aria-label': 'Previous month',
+                      title: '上个月',
+                      onClick: () => emit('previousMonth'),
+                    },
+                    '‹',
+                  ),
+                  h(
+                    'button',
+                    {
+                      type: 'button',
+                      class: 'cc-calendar-month__nav',
+                      disabled: props.busy,
+                      'aria-label': 'Next month',
+                      title: '下个月',
+                      onClick: () => emit('nextMonth'),
+                    },
+                    '›',
+                  ),
+                ],
               ),
             ],
           ),
@@ -359,7 +419,10 @@ export const CalendarMonthView = defineComponent({
                   ),
                 ],
               ),
-              renderDayDetail(props.model.selectedDay),
+              renderDayDetail(
+                props.model.selectedDay,
+                () => emit('clearSelection'),
+              ),
             ],
           ),
         ],
