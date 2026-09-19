@@ -1,4 +1,5 @@
 import type {
+  CalendarDate,
   CalendarPoint,
   CalendarRecurrence,
   CalendarRecurrenceFrequency,
@@ -52,7 +53,7 @@ export function readMetadata(
   return isRecord(value) ? { ...value } : null;
 }
 
-function readCalendarDate(value: unknown): CalendarPoint['date'] | null {
+export function parseCalendarDate(value: unknown): CalendarDate | null {
   if (!isRecord(value)) {
     return null;
   }
@@ -97,7 +98,7 @@ export function parseCalendarPoint(value: unknown): CalendarPoint | null {
     return null;
   }
 
-  const date = readCalendarDate(value.date);
+  const date = parseCalendarDate(value.date);
   if (!date) {
     return null;
   }
