@@ -9,6 +9,7 @@ import {
   classAdapter,
   eventAdapter,
   festivalAdapter,
+  historyAdapter,
   reminderAdapter,
   parseAnniversaryDefinitions,
   parseAppointmentDefinitions,
@@ -16,6 +17,7 @@ import {
   parseClassDefinitions,
   parseEventDefinitions,
   parseFestivalDefinitions,
+  parseHistoryDefinitions,
   parseReminderDefinitions,
 } from '../modules';
 import {
@@ -78,6 +80,12 @@ async function bootstrap(): Promise<void> {
     adapter: reminderAdapter,
     path: 'calendar.modules.reminder',
     parser: parseReminderDefinitions,
+  });
+
+  bridge.registerModule({
+    adapter: historyAdapter,
+    path: 'calendar.modules.history',
+    parser: parseHistoryDefinitions,
   });
 
   bridge.registerModule({

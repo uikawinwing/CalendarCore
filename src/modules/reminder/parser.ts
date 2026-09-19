@@ -1,7 +1,4 @@
-import type {
-  ReminderDefinition,
-  ReminderTarget,
-} from './types';
+import type { ReminderDefinition } from './types';
 import {
   isRecord,
   parseCalendarPoint,
@@ -10,21 +7,7 @@ import {
   readNonEmptyString,
   readStringArray,
 } from '../shared/runtime-parser';
-
-function parseReminderTarget(
-  value: unknown,
-): ReminderTarget | null {
-  if (!isRecord(value)) {
-    return null;
-  }
-
-  const moduleId = readNonEmptyString(value.moduleId);
-  const eventId = readNonEmptyString(value.eventId);
-
-  return moduleId && eventId
-    ? { moduleId, eventId }
-    : null;
-}
+import { parseModuleEventReference } from '../shared/event-reference';
 
 function parseReminderDefinition(
   value: unknown,
@@ -64,7 +47,7 @@ function parseReminderDefinition(
   }
 
   if ('target' in value && typeof value.target !== 'undefined') {
-    const target = parseReminderTarget(value.target);
+    const target = parseModuleEventReference(value.target);
     if (!target) {
       return null;
     }

@@ -5,3 +5,4 @@ export * from './birthday';
 export * from './anniversary';
 export * from './class';
 export * from './reminder';
+export * from './history';

@@ -2,11 +2,9 @@ import type {
   CalendarPoint,
   CalendarRecurrence,
 } from '../../core';
+import type { ModuleEventReference } from '../shared/event-reference';
 
-export interface ReminderTarget {
-  moduleId: string;
-  eventId: string;
-}
+export type ReminderTarget = ModuleEventReference;
 
 export interface ReminderDefinition {
   id: string;
