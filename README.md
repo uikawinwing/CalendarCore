@@ -26,3 +26,10 @@ Prove that four unrelated inputs can become calendar events without changing Cal
 - Ellia ticket
 
 UI, Worldbook integration, storage, reminders, and legacy compatibility are intentionally out of scope for this first milestone.
+
+## Development
+
+```bash
+pnpm install
+pnpm check
+```
