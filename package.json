@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test checks/core-contract.test.ts checks/date.test.ts",
+    "test": "tsx --test checks/core-contract.test.ts checks/date.test.ts checks/recurrence.test.ts",
     "check": "pnpm run typecheck && pnpm test"
   },
   "devDependencies": {

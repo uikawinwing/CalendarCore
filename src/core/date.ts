@@ -10,6 +10,17 @@ function assertInteger(value: number, label: string): void {
   }
 }
 
+function assertCalendarSystem(system: CalendarSystem, year: number): void {
+  if (!Number.isInteger(system.daysInWeek) || system.daysInWeek < 1) {
+    throw new RangeError(`Calendar system "${system.id}" returned an invalid week length`);
+  }
+
+  const monthsInYear = system.monthsInYear(year);
+  if (!Number.isInteger(monthsInYear) || monthsInYear < 1) {
+    throw new RangeError(`Calendar system "${system.id}" returned an invalid month count`);
+  }
+}
+
 export function cloneCalendarDate(date: CalendarDate): CalendarDate {
   return { year: date.year, month: date.month, day: date.day };
 }
@@ -26,10 +37,8 @@ export function assertValidCalendarDate(
     throw new RangeError('year must be at least 1');
   }
 
+  assertCalendarSystem(system, date.year);
   const monthsInYear = system.monthsInYear(date.year);
-  if (!Number.isInteger(monthsInYear) || monthsInYear < 1) {
-    throw new RangeError(`Calendar system "${system.id}" returned an invalid month count`);
-  }
 
   if (date.month < 1 || date.month > monthsInYear) {
     throw new RangeError(
@@ -71,6 +80,7 @@ function nextMonth(
   if (date.month < monthsInYear) {
     return { year: date.year, month: date.month + 1 };
   }
+
   return { year: date.year + 1, month: 1 };
 }
 
@@ -81,6 +91,7 @@ function previousMonth(
   if (date.month > 1) {
     return { year: date.year, month: date.month - 1 };
   }
+
   if (date.year <= 1) {
     throw new RangeError('CalendarCore does not support dates before year 1');
   }
@@ -141,6 +152,73 @@ export function addCalendarDays(
   return cursor;
 }
 
+export function addCalendarMonths(
+  date: CalendarDate,
+  delta: number,
+  system: CalendarSystem = gregorianCalendarSystem,
+): CalendarDate {
+  assertInteger(delta, 'delta');
+  assertValidCalendarDate(date, system);
+
+  let cursor = { year: date.year, month: date.month };
+  const direction = Math.sign(delta);
+
+  for (let remaining = Math.abs(delta); remaining > 0; remaining -= 1) {
+    cursor = direction > 0 ? nextMonth(cursor, system) : previousMonth(cursor, system);
+  }
+
+  return {
+    ...cursor,
+    day: Math.min(date.day, system.daysInMonth(cursor.year, cursor.month)),
+  };
+}
+
+export function addCalendarYears(
+  date: CalendarDate,
+  delta: number,
+  system: CalendarSystem = gregorianCalendarSystem,
+): CalendarDate {
+  assertInteger(delta, 'delta');
+  assertValidCalendarDate(date, system);
+
+  const year = date.year + delta;
+  if (year < 1) {
+    throw new RangeError('CalendarCore does not support dates before year 1');
+  }
+
+  const month = Math.min(date.month, system.monthsInYear(year));
+  return {
+    year,
+    month,
+    day: Math.min(date.day, system.daysInMonth(year, month)),
+  };
+}
+
+export function getCalendarDayDistance(
+  from: CalendarDate,
+  to: CalendarDate,
+  system: CalendarSystem = gregorianCalendarSystem,
+): number {
+  assertValidCalendarDate(from, system);
+  assertValidCalendarDate(to, system);
+
+  const comparison = compareCalendarDate(from, to);
+  if (comparison === 0) {
+    return 0;
+  }
+
+  const direction = comparison < 0 ? 1 : -1;
+  let distance = 0;
+  let cursor = cloneCalendarDate(from);
+
+  while (!isSameCalendarDate(cursor, to)) {
+    cursor = addCalendarDays(cursor, direction, system);
+    distance += direction;
+  }
+
+  return distance;
+}
+
 export function ensureCalendarRangeOrder(range: CalendarDateRange): CalendarDateRange {
   if (compareCalendarDate(range.start, range.end) <= 0) {
     return {
@@ -153,6 +231,16 @@ export function ensureCalendarRangeOrder(range: CalendarDateRange): CalendarDate
     start: cloneCalendarDate(range.end),
     end: cloneCalendarDate(range.start),
   };
+}
+
+export function calendarRangesOverlap(
+  left: CalendarDateRange,
+  right: CalendarDateRange,
+): boolean {
+  return (
+    compareCalendarDate(left.start, right.end) <= 0 &&
+    compareCalendarDate(left.end, right.start) >= 0
+  );
 }
 
 export function isCalendarDateInsideRange(

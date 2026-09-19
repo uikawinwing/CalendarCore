@@ -39,6 +39,13 @@ export interface CalendarEvent {
   payload?: Readonly<Record<string, unknown>>;
 }
 
+export interface CalendarOccurrence {
+  event: CalendarEvent;
+  occurrenceIndex: number;
+  start: CalendarPoint;
+  end?: CalendarPoint;
+}
+
 export interface CalendarModuleAdapter<TInput> {
   readonly moduleId: string;
   normalize(input: TInput): CalendarEvent | CalendarEvent[];

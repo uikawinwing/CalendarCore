@@ -33,6 +33,7 @@ test('date arithmetic crosses month and year boundaries in both directions', () 
 test('core date arithmetic works with a non-Gregorian calendar system', () => {
   const tenMonthCalendar: CalendarSystem = {
     id: 'ten-month-fixture',
+    daysInWeek: 5,
     monthsInYear: () => 10,
     daysInMonth: () => 36,
   };

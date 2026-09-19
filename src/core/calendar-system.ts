@@ -1,5 +1,6 @@
 export interface CalendarSystem {
   readonly id: string;
+  readonly daysInWeek: number;
   monthsInYear(year: number): number;
   daysInMonth(year: number, month: number): number;
 }
@@ -17,6 +18,7 @@ export function isGregorianLeapYear(year: number): boolean {
 
 export const gregorianCalendarSystem: CalendarSystem = {
   id: 'gregorian',
+  daysInWeek: 7,
 
   monthsInYear(year) {
     assertPositiveInteger(year, 'year');

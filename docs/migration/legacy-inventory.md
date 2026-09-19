@@ -8,22 +8,22 @@ This file is a migration map, not a copy checklist.
 
 - [x] Event/module normalization contract
 - [x] Calendar date primitives and pure date arithmetic
-- [ ] Recurrence expansion
-- [ ] Range querying / agenda projection
+- [x] Recurrence expansion
+- [x] Range query / occurrence projection
 - [ ] Host package boundary
 - [ ] First real external module
 
 ## Extract as pure core candidates
 
-These concepts are useful, but should be re-derived behind the new contract instead of copied wholesale:
+The useful legacy concepts have been re-derived behind the new contract instead of copied wholesale:
 
-- recurrence expansion behavior
-- month/day query behavior
-- focused regression checks for pure calculations
-
-The legacy `DatePoint` / `DateRange` idea has been migrated as `CalendarDate` / `CalendarDateRange`.
+- `DatePoint` / `DateRange` became `CalendarDate` / `CalendarDateRange`
+- recurring-event expansion became `expandCalendarEventOccurrences`
+- range lookup became `queryCalendarOccurrences`
 
 The old date helper hard-coded Gregorian rules and mixed date math with parsing, era aliases, Chinese numerals, weekday labels, and native `Date`. The new date layer separates those concerns and accepts an injected `CalendarSystem`.
+
+The old recurrence code also mixed parsing of Chinese UI text with occurrence generation. CalendarCore now expects normalized recurrence data. Parsing phrases such as `每周二` belongs in an adapter, not the engine.
 
 ## Rewrite as external modules/adapters
 
@@ -60,6 +60,8 @@ Legacy `types.ts` mixed domain data, festivals, archive policy, view models, UI 
 Legacy `calendar-view-model/model.ts` directly normalized festivals and used festival-specific visual/location logic.
 
 Legacy `date.ts` mixed pure calendar arithmetic with parsing and presentation-specific rules.
+
+Legacy recurring-event expansion parsed strings such as `每月15日` and `每周二` inside the view model. The new engine consumes normalized recurrence instead.
 
 The new core must not gain imports or branches for named business modules such as `festival`, `class`, `quest`, or `ellia-ticket`.
 
