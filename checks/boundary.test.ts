@@ -31,47 +31,57 @@ test('Core never imports outer layers or business modules', () => {
   assert.deepEqual(
     findImports(
       join(srcRoot, 'core'),
-      /from\s+['"][^'"]*(?:modules|app|host|ui|renderers)(?:\/|['"])/,
+      /from\s+['"][^'"]*(?:modules|app|host|ui|renderers|integrations)(?:\/|['"])/,
     ),
     [],
   );
 });
 
-test('business modules never import App, Host, UI or renderers', () => {
+test('business modules never import outer application layers', () => {
   assert.deepEqual(
     findImports(
       join(srcRoot, 'modules'),
-      /from\s+['"][^'"]*(?:app|host|ui|renderers)(?:\/|['"])/,
+      /from\s+['"][^'"]*(?:app|host|ui|renderers|integrations)(?:\/|['"])/,
     ),
     [],
   );
 });
 
-test('App never imports Host, UI or renderers', () => {
+test('App never imports Host, UI, renderers or integrations', () => {
   assert.deepEqual(
     findImports(
       join(srcRoot, 'app'),
-      /from\s+['"][^'"]*(?:host|ui|renderers)(?:\/|['"])/,
+      /from\s+['"][^'"]*(?:host|ui|renderers|integrations)(?:\/|['"])/,
     ),
     [],
   );
 });
 
-test('Host never imports UI or renderers', () => {
+test('Host never imports UI, renderers or integrations', () => {
   assert.deepEqual(
     findImports(
       join(srcRoot, 'host'),
-      /from\s+['"][^'"]*(?:ui|renderers)(?:\/|['"])/,
+      /from\s+['"][^'"]*(?:ui|renderers|integrations)(?:\/|['"])/,
     ),
     [],
   );
 });
 
-test('renderers depend on UI contracts, not app/host/modules/core directly', () => {
+test('UI never imports Host, renderers, integrations or business modules', () => {
+  assert.deepEqual(
+    findImports(
+      join(srcRoot, 'ui'),
+      /from\s+['"][^'"]*(?:host|renderers|integrations|modules)(?:\/|['"])/,
+    ),
+    [],
+  );
+});
+
+test('renderers depend on UI contracts, not lower implementation layers', () => {
   assert.deepEqual(
     findImports(
       join(srcRoot, 'renderers'),
-      /from\s+['"][^'"]*(?:app|host|modules|core)(?:\/|['"])/,
+      /from\s+['"][^'"]*(?:app|host|modules|core|integrations)(?:\/|['"])/,
     ),
     [],
   );
