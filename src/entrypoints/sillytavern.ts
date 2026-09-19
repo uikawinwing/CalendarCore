@@ -3,10 +3,14 @@ import {
   readValueAtPath,
 } from '../host/sillytavern';
 import {
+  anniversaryAdapter,
   appointmentAdapter,
+  birthdayAdapter,
   eventAdapter,
   festivalAdapter,
+  parseAnniversaryDefinitions,
   parseAppointmentDefinitions,
+  parseBirthdayDefinitions,
   parseEventDefinitions,
   parseFestivalDefinitions,
 } from '../modules';
@@ -46,6 +50,18 @@ async function bootstrap(): Promise<void> {
     adapter: appointmentAdapter,
     path: 'calendar.modules.appointment',
     parser: parseAppointmentDefinitions,
+  });
+
+  bridge.registerModule({
+    adapter: birthdayAdapter,
+    path: 'calendar.modules.birthday',
+    parser: parseBirthdayDefinitions,
+  });
+
+  bridge.registerModule({
+    adapter: anniversaryAdapter,
+    path: 'calendar.modules.anniversary',
+    parser: parseAnniversaryDefinitions,
   });
 
   bridge.registerModule({
