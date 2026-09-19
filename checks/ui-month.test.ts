@@ -121,6 +121,38 @@ test('month grid includes leading and trailing week cells without UI-specific ev
     month: 2,
     day: 4,
   });
+  assert.deepEqual(view.selectedDay?.date, {
+    year: 100,
+    month: 2,
+    day: 4,
+  });
+  assert.deepEqual(view.selectedDay?.occurrences, []);
+
+  const todayView = buildCalendarMonthViewModel({
+    year: 100,
+    month: 2,
+    weekAnchor,
+    selectedDate: { year: 100, month: 2, day: 3 },
+    snapshot,
+  });
+
+  assert.equal(todayView.selectedDay?.isToday, true);
+  assert.deepEqual(
+    todayView.selectedDay?.occurrences.map(value => ({
+      eventId: value.eventId,
+      moduleId: value.moduleId,
+      kind: value.kind,
+      title: value.title,
+    })),
+    [
+      {
+        eventId: 'meeting',
+        moduleId: 'appointment',
+        kind: 'appointment',
+        title: 'Meeting',
+      },
+    ],
+  );
 });
 
 test('month grid respects custom week lengths', () => {
