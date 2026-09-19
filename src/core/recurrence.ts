@@ -9,7 +9,6 @@ import {
   assertValidCalendarDate,
   calendarRangesOverlap,
   compareCalendarDate,
-  getCalendarDayDistance,
 } from './date';
 import type {
   CalendarDate,
@@ -36,33 +35,39 @@ function getRecurrenceInterval(event: CalendarEvent): number {
   return interval;
 }
 
-function getOccurrenceStartDate(
+function shiftOccurrenceDate(
+  date: CalendarDate,
   event: CalendarEvent,
   occurrenceIndex: number,
   system: CalendarSystem,
 ): CalendarDate {
   const recurrence = event.recurrence;
   if (!recurrence || occurrenceIndex === 0) {
-    return event.start.date;
+    return date;
   }
 
   const interval = getRecurrenceInterval(event) * occurrenceIndex;
 
   switch (recurrence.frequency) {
     case 'daily':
-      return addCalendarDays(event.start.date, interval, system);
+      return addCalendarDays(date, interval, system);
     case 'weekly':
-      return addCalendarDays(event.start.date, interval * system.daysInWeek, system);
+      return addCalendarDays(date, interval * system.daysInWeek, system);
     case 'monthly':
-      return addCalendarMonths(event.start.date, interval, system);
+      return addCalendarMonths(date, interval, system);
     case 'yearly':
-      return addCalendarYears(event.start.date, interval, system);
+      return addCalendarYears(date, interval, system);
   }
 }
 
-function clonePointWithDate(point: CalendarPoint, date: CalendarDate): CalendarPoint {
+function occurrencePoint(
+  point: CalendarPoint,
+  event: CalendarEvent,
+  occurrenceIndex: number,
+  system: CalendarSystem,
+): CalendarPoint {
   return {
-    date,
+    date: shiftOccurrenceDate(point.date, event, occurrenceIndex, system),
     ...(point.time ? { time: { ...point.time } } : {}),
   };
 }
@@ -70,22 +75,22 @@ function clonePointWithDate(point: CalendarPoint, date: CalendarDate): CalendarP
 function createOccurrence(
   event: CalendarEvent,
   occurrenceIndex: number,
-  startDate: CalendarDate,
-  durationDays: number,
   system: CalendarSystem,
 ): CalendarOccurrence {
-  const start = clonePointWithDate(event.start, startDate);
+  const start = occurrencePoint(event.start, event, occurrenceIndex, system);
+  const end = event.end
+    ? occurrencePoint(event.end, event, occurrenceIndex, system)
+    : undefined;
 
-  if (!event.end) {
-    return { event, occurrenceIndex, start };
+  if (end && compareCalendarDate(end.date, start.date) < 0) {
+    throw new RangeError('Calendar event end must not be before start');
   }
 
-  const endDate = addCalendarDays(startDate, durationDays, system);
   return {
     event,
     occurrenceIndex,
     start,
-    end: clonePointWithDate(event.end, endDate),
+    ...(end ? { end } : {}),
   };
 }
 
@@ -106,18 +111,14 @@ export function expandCalendarEventOccurrences(
 
   if (event.end) {
     assertValidCalendarDate(event.end.date, system);
-  }
 
-  const durationDays = event.end
-    ? getCalendarDayDistance(event.start.date, event.end.date, system)
-    : 0;
-
-  if (durationDays < 0) {
-    throw new RangeError('Calendar event end must not be before start');
+    if (compareCalendarDate(event.end.date, event.start.date) < 0) {
+      throw new RangeError('Calendar event end must not be before start');
+    }
   }
 
   if (!event.recurrence) {
-    const occurrence = createOccurrence(event, 0, event.start.date, durationDays, system);
+    const occurrence = createOccurrence(event, 0, system);
     return calendarRangesOverlap(occurrenceDateRange(occurrence), targetRange)
       ? [occurrence]
       : [];
@@ -133,18 +134,11 @@ export function expandCalendarEventOccurrences(
   let occurrenceIndex = 0;
 
   while (true) {
-    const startDate = getOccurrenceStartDate(event, occurrenceIndex, system);
-    if (compareCalendarDate(startDate, targetRange.end) > 0) {
+    const occurrence = createOccurrence(event, occurrenceIndex, system);
+
+    if (compareCalendarDate(occurrence.start.date, targetRange.end) > 0) {
       break;
     }
-
-    const occurrence = createOccurrence(
-      event,
-      occurrenceIndex,
-      startDate,
-      durationDays,
-      system,
-    );
 
     if (calendarRangesOverlap(occurrenceDateRange(occurrence), targetRange)) {
       occurrences.push(occurrence);

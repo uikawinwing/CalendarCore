@@ -31,7 +31,7 @@ test('recurrence is anchored to event start and never creates earlier occurrence
   );
 });
 
-test('monthly recurrence derives each occurrence from the anchor date', () => {
+test('monthly recurrence derives each occurrence from the original anchor', () => {
   const event: CalendarEvent = {
     id: 'month-end',
     moduleId: 'fixture',
@@ -86,6 +86,26 @@ test('weekly recurrence respects the calendar system week length', () => {
       { year: 1, month: 1, day: 16 },
     ],
   );
+});
+
+test('recurring end dates keep their own calendar anchor', () => {
+  const crossYearFestival: CalendarEvent = {
+    id: 'cross-year',
+    moduleId: 'fixture',
+    kind: 'fixture',
+    title: 'Cross year',
+    start: { date: { year: 2023, month: 12, day: 30 } },
+    end: { date: { year: 2024, month: 1, day: 3 } },
+    recurrence: { frequency: 'yearly' },
+  };
+
+  const [occurrence] = expandCalendarEventOccurrences(crossYearFestival, {
+    start: { year: 2024, month: 12, day: 1 },
+    end: { year: 2025, month: 1, day: 31 },
+  });
+
+  assert.deepEqual(occurrence?.start.date, { year: 2024, month: 12, day: 30 });
+  assert.deepEqual(occurrence?.end?.date, { year: 2025, month: 1, day: 3 });
 });
 
 test('multi-day occurrences are returned when they overlap the query range', () => {
