@@ -60,6 +60,11 @@ export async function mountVueCalendarMonth(
         options.onSelectedDateChange?.(date);
       };
 
+      const clearSelection = () => {
+        model.value =
+          options.session.clearSelectedDate();
+      };
+
       return () =>
         h(CalendarMonthView, {
           model: model.value,
@@ -70,6 +75,7 @@ export async function mountVueCalendarMonth(
           onPreviousMonth: () => void navigate(-1),
           onNextMonth: () => void navigate(1),
           onSelectDate: selectDate,
+          onClearSelection: clearSelection,
         });
     },
   });

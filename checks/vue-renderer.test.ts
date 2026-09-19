@@ -39,7 +39,7 @@ const appointmentAdapter: CalendarModuleAdapter<AppointmentInput> = {
   },
 };
 
-test('month session loads, selects and navigates without Vue owning app logic', async () => {
+test('month session loads, selects, clears and navigates without Vue owning app logic', async () => {
   const app = new CalendarApp({
     timeSource: {
       getCurrentPoint: () => ({
@@ -90,13 +90,20 @@ test('month session loads, selects and navigates without Vue owning app logic', 
     'meeting',
   );
 
+  model = session.clearSelectedDate();
+  assert.equal(model.selectedDay, undefined);
+  assert.equal(
+    model.cells.some(cell => cell.isSelected),
+    false,
+  );
+
   model = await session.navigateMonths(1);
   assert.equal(model.year, 2026);
   assert.equal(model.month, 10);
   assert.equal(model.selectedDay, undefined);
 });
 
-test('Vue month renderer emits generic selected-day details', async () => {
+test('Vue month renderer emits old-style generic selected-day details', async () => {
   const app = new CalendarApp({
     timeSource: {
       getCurrentPoint: () => ({
@@ -154,7 +161,7 @@ test('Vue month renderer emits generic selected-day details', async () => {
     }),
   );
 
-  assert.match(html, /2026 \/ 9/);
+  assert.match(html, /2026 年 9 月/);
   assert.match(
     html,
     /data-calendar-date="2026-09-19"/,
@@ -169,7 +176,8 @@ test('Vue month renderer emits generic selected-day details', async () => {
   );
   assert.match(html, /appointment/);
   assert.match(html, /Meeting/);
-  assert.match(html, /All day/);
+  assert.match(html, /全天/);
+  assert.match(html, /返回月历/);
   assert.match(html, /aria-pressed="true"/);
   assert.match(html, /Previous month/);
   assert.match(html, /Next month/);
