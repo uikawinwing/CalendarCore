@@ -18,7 +18,7 @@ https://raw.githubusercontent.com/uikawinwing/CalendarCore/feat/mobile-v3-st-pre
 
 只加载一个 CalendarCore 版本，旧版（`@main`）先禁用；重新加载脚本后点开浮动的 📅。
 
-当前运行时仍依赖最新消息变量的 `calendar.now`、`calendar.weekAnchor`。没有这些数据，入口会拒绝启动，详见 [runtime-contract.md](runtime-contract.md)。
+开新游戏时，日历浮窗会先显示「日历尚未初始化」；缺少 `calendar.now`、`calendar.weekAnchor`、或首条消息还没产生时，脚本不会抛错退出。每 2 秒轻量检测一次，发现有效数据后自动加载日历并停止重试。此查看器**不会凭空生成世界日期或修改 MVU 变量**，所以真正的数据仍需要由游戏/预设/世界书提供；格式要求见 [runtime-contract.md](runtime-contract.md)。
 
 ## 测试项目
 

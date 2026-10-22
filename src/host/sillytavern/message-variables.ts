@@ -24,23 +24,32 @@ export class SillyTavernMessageVariableReader {
       message_id: messageId,
     };
 
+    let mvuVariables: Record<string, unknown> | null = null;
     if (this.runtime.getMvuData) {
       try {
         const mvuData = this.runtime.getMvuData(target);
         if (isRecord(mvuData)) {
-          return mvuData;
+          mvuVariables = mvuData;
+          // The actual calendar source should be preferred if both exist.
+          if ('calendar' in mvuData) return mvuData;
         }
       } catch {
         // MVU is optional. Fall back to normal message variables.
       }
     }
 
-    const variables = this.runtime.getVariables(target);
-    if (!isRecord(variables)) {
-      throw new Error('SillyTavern message variables are not an object');
+    try {
+      const variables = this.runtime.getVariables(target);
+      if (isRecord(variables)) {
+        return 'calendar' in variables ? variables : (mvuVariables ?? variables);
+      }
+    } catch (error) {
+      if (mvuVariables) return mvuVariables;
+      throw error;
     }
 
-    return variables;
+    if (mvuVariables) return mvuVariables;
+    throw new Error('SillyTavern message variables are not an object');
   }
 }
 

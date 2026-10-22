@@ -33,7 +33,8 @@ interface DragState extends Position {
 }
 
 export interface SillyTavernCalendarShellOptions {
-  session: CalendarMonthSession;
+  session?: CalendarMonthSession;
+  pendingMessage?: string;
   pageDocument?: Document;
   lifecycleWindow?: Window;
   buttonLabel?: string;
@@ -49,7 +50,9 @@ export interface MountedSillyTavernCalendarShell {
   close(): void;
   toggle(): void;
   isOpen(): boolean;
-  refresh(): Promise<CalendarMonthViewModel>;
+  refresh(): Promise<CalendarMonthViewModel | null>;
+  activateSession(session: CalendarMonthSession): Promise<void>;
+  showPending(message: string): void;
   destroy(): void;
 }
 
@@ -383,6 +386,8 @@ export async function mountSillyTavernCalendarShell(
   let openState = options.initiallyOpen ?? false;
   let renderer: MountedVueCalendarMonth | null = null;
   let destroyed = false;
+  let statusMessage = options.pendingMessage ?? '等待历法数据初始化';
+  let frameDocument: Document | null = null;
   let suppressNextButtonClick = false;
   let buttonDrag: DragState | null = null;
   let panelDrag: DragState | null = null;
@@ -799,31 +804,54 @@ export async function mountSillyTavernCalendarShell(
     );
   }
 
-  renderer = await mountVueCalendarMonth(
-    panelDocument.body,
-    {
-      session: options.session,
+  frameDocument = panelDocument;
+
+  const showPending = (message: string) => {
+    statusMessage = message;
+    if (!frameDocument || renderer || destroyed) return;
+    const notice = frameDocument.createElement('main');
+    notice.dataset.calendarCoreState = 'waiting';
+    notice.setAttribute('role', 'status');
+    notice.style.cssText =
+      'display:flex;flex-direction:column;align-items:center;justify-content:center;' +
+      'height:100%;padding:24px;box-sizing:border-box;text-align:center;' +
+      'gap:12px;color:#604b35;background:#f6f0e4;';
+    const heading = frameDocument.createElement('strong');
+    heading.textContent = '日历尚未初始化';
+    heading.style.fontSize = '18px';
+    const detail = frameDocument.createElement('span');
+    detail.textContent = message;
+    detail.style.cssText = 'font-size:13px;line-height:1.6;max-width:350px;';
+    notice.append(heading, detail);
+    frameDocument.body.replaceChildren(notice);
+  };
+
+  const activateSession = async (session: CalendarMonthSession) => {
+    if (destroyed || !frameDocument || renderer) return;
+    const mounted = await mountVueCalendarMonth(frameDocument.body, {
+      session,
       weekdayLabels: options.weekdayLabels,
-      maxVisibleOccurrences:
-        options.maxVisibleOccurrences,
-      onSelectedDateChange:
-        options.onSelectedDateChange,
-    },
-  );
+      maxVisibleOccurrences: options.maxVisibleOccurrences,
+      onSelectedDateChange: options.onSelectedDateChange,
+    });
+    if (destroyed) mounted.destroy();
+    else renderer = mounted;
+  };
+
+  if (options.session) {
+    await activateSession(options.session);
+  } else {
+    showPending(statusMessage);
+  }
 
   return {
     open,
     close,
     toggle,
     isOpen: () => openState,
-    refresh: () => {
-      if (!renderer) {
-        throw new Error(
-          'Calendar renderer is not mounted',
-        );
-      }
-      return renderer.refresh();
-    },
+    activateSession,
+    showPending,
+    refresh: () => renderer ? renderer.refresh() : Promise.resolve(null),
     destroy,
   };
 }
