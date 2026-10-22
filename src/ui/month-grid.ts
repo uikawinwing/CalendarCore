@@ -165,6 +165,7 @@ export function buildCalendarMonthViewModel(
   return {
     year: options.year,
     month: options.month,
+    today: { ...options.snapshot.now.date },
     columns: system.daysInWeek,
     range,
     cells,

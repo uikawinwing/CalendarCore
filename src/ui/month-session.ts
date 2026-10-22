@@ -1,5 +1,6 @@
 import type { CalendarApp, CalendarAppSnapshot } from '../app';
 import {
+  addCalendarDays,
   addCalendarMonths,
   assertValidCalendarDate,
   cloneCalendarDate,
@@ -107,7 +108,41 @@ export class CalendarMonthSession {
       month: next.month,
     };
 
+    // Keep the agenda visible on the corresponding day in the next month.
+    if (this.selectedDate) {
+      this.selectedDate = {
+        ...this.currentMonth,
+        day: Math.min(
+          this.selectedDate.day,
+          this.calendarSystem.daysInMonth(next.year, next.month),
+        ),
+      };
+    }
+
     return this.load();
+  }
+
+  async goToDate(date: CalendarDate): Promise<CalendarMonthViewModel> {
+    assertValidCalendarDate(date, this.calendarSystem);
+    this.selectedDate = cloneCalendarDate(date);
+    if (
+      !this.snapshot ||
+      date.year !== this.currentMonth.year ||
+      date.month !== this.currentMonth.month
+    ) {
+      this.currentMonth = { year: date.year, month: date.month };
+      return this.load();
+    }
+    this.model = this.buildModel(this.snapshot);
+    return this.model;
+  }
+
+  async stepSelectedDate(delta: number): Promise<CalendarMonthViewModel> {
+    const base = this.selectedDate ?? this.model?.today;
+    if (!base) {
+      throw new Error('CalendarMonthSession must be loaded before stepping dates');
+    }
+    return this.goToDate(addCalendarDays(base, delta, this.calendarSystem));
   }
 
   selectDate(date: CalendarDate): CalendarMonthViewModel {

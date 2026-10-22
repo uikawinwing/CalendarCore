@@ -1,3 +1,5 @@
+import { MOBILE_V3_CSS } from './mobile-v3-styles';
+
 export const CALENDAR_MONTH_VIEW_CSS = String.raw`
 [data-calendar-core-mount="vue-month"] {
   height: 100%;
@@ -476,4 +478,4 @@ export const CALENDAR_MONTH_VIEW_CSS = String.raw`
     font-size: 8.5px;
   }
 }
-`;
+` + MOBILE_V3_CSS;

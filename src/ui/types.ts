@@ -40,6 +40,7 @@ export interface CalendarDayViewModel {
 export interface CalendarMonthViewModel {
   year: number;
   month: number;
+  today: CoreCalendarDate;
   columns: number;
   range: CalendarDateRange;
   cells: CalendarMonthCell[];

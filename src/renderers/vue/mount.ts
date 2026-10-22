@@ -55,9 +55,27 @@ export async function mountVueCalendarMonth(
         }
       };
 
-      const selectDate = (date: CalendarDate) => {
-        model.value = options.session.selectDate(date);
-        options.onSelectedDateChange?.(date);
+      const moveToDate = async (date: CalendarDate) => {
+        if (busy.value) return;
+        busy.value = true;
+        try {
+          model.value = await options.session.goToDate(date);
+          options.onSelectedDateChange?.(date);
+        } finally {
+          busy.value = false;
+        }
+      };
+
+      const stepDate = async (delta: number) => {
+        if (busy.value) return;
+        busy.value = true;
+        try {
+          model.value = await options.session.stepSelectedDate(delta);
+          const selected = model.value.selectedDay?.date;
+          if (selected) options.onSelectedDateChange?.(selected);
+        } finally {
+          busy.value = false;
+        }
       };
 
       const clearSelection = () => {
@@ -74,7 +92,10 @@ export async function mountVueCalendarMonth(
           busy: busy.value,
           onPreviousMonth: () => void navigate(-1),
           onNextMonth: () => void navigate(1),
-          onSelectDate: selectDate,
+          onSelectDate: (date: CalendarDate) => void moveToDate(date),
+          onPreviousDay: () => void stepDate(-1),
+          onNextDay: () => void stepDate(1),
+          onGoToday: () => void moveToDate(model.value.today),
           onClearSelection: clearSelection,
         });
     },
