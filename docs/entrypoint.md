@@ -1,8 +1,8 @@
 # SillyTavern entrypoint
 
-The first runnable CalendarCore script uses the new structured runtime contract only.
+The runnable CalendarCore script accepts the structured contract and the existing Destiny MVU world-time string.
 
-Required latest-message variables:
+Preferred structured latest-message variables:
 
 calendar.now
   date.year
@@ -16,6 +16,12 @@ calendar.weekAnchor
   date.month
   date.day
   weekday
+
+Alternative input:
+
+stat_data.世界.时间 (e.g. 复兴纪元488年-04月-12日-星期三-11:45)
+
+The world weekday provides the anchor, not the real Gregorian weekday for a fictional era.
 
 Optional module data:
 
@@ -34,4 +40,5 @@ dist/calendar-core-sillytavern.js
 
 The production build is a single browser IIFE. Loading it starts the CalendarCore SillyTavern shell immediately.
 
-Legacy Calendar Float worldbook/profile fields are intentionally not read by this entrypoint.
+Legacy Calendar Float worldbook/profile fields remain outside the entrypoint; only the explicit Destiny world-time string is adapted.
+

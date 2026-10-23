@@ -61,7 +61,7 @@ async function bootstrap(): Promise<void> {
   window.CalendarCoreRuntime?.destroy();
 
   const shell = await mountSillyTavernCalendarShell({
-    pendingMessage: '等待 calendar.now 与 calendar.weekAnchor 初始化',
+    pendingMessage: '等待 stat_data.世界.时间 / calendar.now 初始化',
     buttonLabel: '📅',
     buttonTitle: 'Calendar',
     weekdayLabels: ['日', '一', '二', '三', '四', '五', '六'],
@@ -92,7 +92,8 @@ async function bootstrap(): Promise<void> {
 
       const bridge = new SillyTavernCalendarBridge({
         runtime,
-        timePath: 'calendar.now',
+        timePath: readiness.timePath,
+        ...(readiness.timeParser ? { timeParser: readiness.timeParser } : {}),
       });
   bridge.registerModule({
     adapter: eventAdapter,

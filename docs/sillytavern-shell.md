@@ -21,8 +21,8 @@ Bridge responsibilities:
 Shell responsibilities:
 
 - one floating calendar button in the host page
-- one isolated srcdoc iframe panel
-- one Vue month renderer inside that iframe
+- one Shadow DOM viewport hosted directly in the visible ST page
+- one Vue month renderer inside the isolated viewport (no iframe load dependency)
 - Escape-to-close
 - pagehide cleanup
 - hot-reload replacement of an older shell instance
@@ -30,3 +30,4 @@ Shell responsibilities:
 The panel intentionally excludes editors, settings, reminders, archive/history, and module-specific visual effects.
 
 No lower layer imports integrations.
+

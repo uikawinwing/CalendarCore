@@ -30,8 +30,8 @@ export class SillyTavernMessageVariableReader {
         const mvuData = this.runtime.getMvuData(target);
         if (isRecord(mvuData)) {
           mvuVariables = mvuData;
-          // The actual calendar source should be preferred if both exist.
-          if ('calendar' in mvuData) return mvuData;
+          // Continue reading ordinary variables: they may contain calendar
+          // while MVU contains stat_data (or vice versa).
         }
       } catch {
         // MVU is optional. Fall back to normal message variables.
@@ -41,7 +41,10 @@ export class SillyTavernMessageVariableReader {
     try {
       const variables = this.runtime.getVariables(target);
       if (isRecord(variables)) {
-        return 'calendar' in variables ? variables : (mvuVariables ?? variables);
+        // Combine independent top-level schemas rather than discarding a
+        // world clock when the other provider only has a partial calendar.
+        // MVU takes precedence for keys it actually provides.
+        return mvuVariables ? { ...variables, ...mvuVariables } : variables;
       }
     } catch (error) {
       if (mvuVariables) return mvuVariables;
@@ -73,3 +76,4 @@ export function readValueAtPath(
 
   return cursor;
 }
+

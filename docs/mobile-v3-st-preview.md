@@ -18,7 +18,9 @@ https://raw.githubusercontent.com/uikawinwing/CalendarCore/feat/mobile-v3-st-pre
 
 只加载一个 CalendarCore 版本，旧版（`@main`）先禁用；重新加载脚本后点开浮动的 📅。
 
-开新游戏时，日历浮窗会先显示「日历尚未初始化」；缺少 `calendar.now`、`calendar.weekAnchor`、或首条消息还没产生时，脚本不会抛错退出。每 2 秒轻量检测一次，发现有效数据后自动加载日历并停止重试。此查看器**不会凭空生成世界日期或修改 MVU 变量**，所以真正的数据仍需要由游戏/预设/世界书提供；格式要求见 [runtime-contract.md](runtime-contract.md)。
+开新游戏时，浮窗先显示「日历尚未初始化」，每 2 秒检查一次；加载成功后停止检查。优先读取完整的 `calendar.now` + `calendar.weekAnchor`，否则兼容 `stat_data.世界.时间`（例如 `复兴纪元488年-04月-12日-星期三-11:45`）。使用世界字符串里的星期，不按现实公历重新计算；不修改 MVU、不编造时间。
+
+面板使用 Shadow DOM，避免内部 iframe 加载事件丢失导致全白。**ST 测试时请使用锁定 Commit SHA 的 JS URL**，分支 URL 可能被 CDN 缓存。现有 `stat_data.事件` 的「开启/结束/标题/阶段」字段不是日期型事件列表，暂未自动映射为日历事件。
 
 ## 测试项目
 
@@ -29,3 +31,4 @@ https://raw.githubusercontent.com/uikawinwing/CalendarCore/feat/mobile-v3-st-pre
 - 自定义八日制可通过公共 MonthSession/Vue Renderer 验证；目前默认 ST entrypoint 仍是七日 Gregorian，不提供八日制配置入口。
 
 本次未接入事件编辑、筛选、业务私有 payload 或新的 Host 协议。
+

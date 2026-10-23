@@ -307,50 +307,6 @@ function createHostStyle(document: Document): HTMLStyleElement {
   return style;
 }
 
-function createPanelSrcdoc(): string {
-  return [
-    '<!doctype html>',
-    '<html>',
-    '<head>',
-    '  <meta charset="utf-8">',
-    '  <meta name="viewport" content="width=device-width,initial-scale=1">',
-    '  <style>',
-    '    :root { color-scheme: light; }',
-    '    html, body { width: 100%; height: 100%; min-height: 100%; }',
-    '    body {',
-    '      margin: 0;',
-    '      overflow: hidden;',
-    '      background:',
-    '        radial-gradient(circle at 10% 0%, rgba(239,209,137,0.12), transparent 34%),',
-    '        linear-gradient(180deg, #fffdf8, #f8f0e5);',
-    '      color: #2c241b;',
-    '      font-family: "Noto Sans SC", "Microsoft YaHei", system-ui, sans-serif;',
-    '    }',
-    '  </style>',
-    '</head>',
-    '<body></body>',
-    '</html>',
-  ].join('\n');
-}
-
-function waitForIframeLoad(
-  iframe: HTMLIFrameElement,
-): Promise<void> {
-  if (
-    iframe.contentDocument?.readyState === 'complete'
-  ) {
-    return Promise.resolve();
-  }
-
-  return new Promise(resolve => {
-    iframe.addEventListener(
-      'load',
-      () => resolve(),
-      { once: true },
-    );
-  });
-}
-
 export async function mountSillyTavernCalendarShell(
   options: SillyTavernCalendarShellOptions,
 ): Promise<MountedSillyTavernCalendarShell> {
@@ -393,11 +349,18 @@ export async function mountSillyTavernCalendarShell(
   closeButton.title = '关闭';
   closeButton.setAttribute('aria-label', '关闭月历');
 
-  const frame = pageDocument.createElement('iframe');
+  // Use a Shadow DOM viewport: it isolates calendar styles from SillyTavern
+  // without depending on a srcdoc iframe load event (which may stall in
+  // Android WebView/TauriTavern and leave a completely blank panel).
+  const frame = pageDocument.createElement('div');
   frame.dataset.calendarCoreShell = 'frame';
-  frame.title = 'Calendar';
-  frame.setAttribute('frameborder', '0');
-  frame.srcdoc = createPanelSrcdoc();
+  frame.setAttribute('aria-label', 'Calendar');
+  const contentRoot = pageDocument.createElement('div');
+  contentRoot.style.cssText =
+    'width:100%;height:100%;min-height:0;overflow:hidden;' +
+    'box-sizing:border-box;color:#2c241b;background:#f6f0e4;' +
+    'font-family:"Noto Sans SC","Microsoft YaHei",system-ui,sans-serif;';
+  frame.attachShadow({ mode: 'open' }).append(contentRoot);
 
   chrome.append(chromeTitle, closeButton);
   panel.append(chrome, frame);
@@ -406,7 +369,6 @@ export async function mountSillyTavernCalendarShell(
   let renderer: MountedVueCalendarMonth | null = null;
   let destroyed = false;
   let statusMessage = options.pendingMessage ?? '等待历法数据初始化';
-  let frameDocument: Document | null = null;
   let suppressNextButtonClick = false;
   let buttonDrag: DragState | null = null;
   let panelDrag: DragState | null = null;
@@ -740,7 +702,6 @@ export async function mountSillyTavernCalendarShell(
   centerPanel();
   syncOpenState();
 
-  const loadPromise = waitForIframeLoad(frame);
 
   const destroy = () => {
     if (destroyed) return;
@@ -807,47 +768,33 @@ export async function mountSillyTavernCalendarShell(
     registryWindow[REGISTRY_KEY] = destroy;
   }
 
-  await loadPromise;
-
   if (destroyed) {
-    throw new Error(
-      'Calendar shell was destroyed before its iframe loaded',
-    );
+    throw new Error('Calendar shell was destroyed before initialization');
   }
-
-  const panelDocument = frame.contentDocument;
-  if (!panelDocument?.body) {
-    destroy();
-    throw new Error(
-      'Calendar shell iframe document is unavailable',
-    );
-  }
-
-  frameDocument = panelDocument;
 
   const showPending = (message: string) => {
     statusMessage = message;
-    if (!frameDocument || renderer || destroyed) return;
-    const notice = frameDocument.createElement('main');
+    if (renderer || destroyed) return;
+    const notice = pageDocument.createElement('main');
     notice.dataset.calendarCoreState = 'waiting';
     notice.setAttribute('role', 'status');
     notice.style.cssText =
       'display:flex;flex-direction:column;align-items:center;justify-content:center;' +
       'height:100%;padding:24px;box-sizing:border-box;text-align:center;' +
       'gap:12px;color:#604b35;background:#f6f0e4;';
-    const heading = frameDocument.createElement('strong');
+    const heading = pageDocument.createElement('strong');
     heading.textContent = '日历尚未初始化';
     heading.style.fontSize = '18px';
-    const detail = frameDocument.createElement('span');
+    const detail = pageDocument.createElement('span');
     detail.textContent = message;
     detail.style.cssText = 'font-size:13px;line-height:1.6;max-width:350px;';
     notice.append(heading, detail);
-    frameDocument.body.replaceChildren(notice);
+    contentRoot.replaceChildren(notice);
   };
 
   const activateSession = async (session: CalendarMonthSession) => {
-    if (destroyed || !frameDocument || renderer) return;
-    const mounted = await mountVueCalendarMonth(frameDocument.body, {
+    if (destroyed || renderer) return;
+    const mounted = await mountVueCalendarMonth(contentRoot, {
       session,
       weekdayLabels: options.weekdayLabels,
       maxVisibleOccurrences: options.maxVisibleOccurrences,
