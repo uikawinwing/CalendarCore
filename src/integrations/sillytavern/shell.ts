@@ -57,6 +57,20 @@ export interface MountedSillyTavernCalendarShell {
 }
 
 function resolvePageDocument(): Document {
+  // TavernHelper exposes the host jQuery instance inside its background
+  // script iframe, even when the script iframe itself is invisible.
+  try {
+    const hostJQuery = (globalThis as unknown as {
+      $?: (selector: string) => { 0?: HTMLElement };
+    }).$;
+    const hostBody = hostJQuery?.('body')?.[0];
+    if (hostBody && hostBody.ownerDocument.body === hostBody) {
+      return hostBody.ownerDocument;
+    }
+  } catch {
+    // jQuery is optional; try the regular same-origin parent.
+  }
+
   try {
     if (
       window.parent &&
@@ -66,9 +80,14 @@ function resolvePageDocument(): Document {
       return window.parent.document;
     }
   } catch {
-    // Cross-origin parent: use the current document.
+    // Never silently mount controls inside an inaccessible host frame.
   }
 
+  if (window.parent !== window) {
+    throw new Error(
+      'CalendarCore cannot reach the visible SillyTavern document from its script iframe',
+    );
+  }
   return document;
 }
 
@@ -855,3 +874,4 @@ export async function mountSillyTavernCalendarShell(
     destroy,
   };
 }
+

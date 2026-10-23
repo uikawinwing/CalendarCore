@@ -36,12 +36,28 @@ declare global {
   }
 }
 
+const PREVIEW_VERSION = 'mobile-v3-st-preview · 2026-10-23';
+
+type ToastLevel = 'info' | 'success' | 'error';
+function notify(level: ToastLevel, message: string): void {
+  const api = (globalThis as unknown as {
+    toastr?: Record<ToastLevel, (text: string, title?: string) => void>;
+  }).toastr;
+  try {
+    api?.[level]?.(message, 'CalendarCore V3');
+  } catch {
+    // Toast is optional. Diagnostics are still reported in the script log.
+  }
+}
+
 /**
  * Mount a visible, inert shell first. The real game calendar is loaded only
  * after the world-date variables have arrived. Never initialize or overwrite
  * story state from a viewer component.
  */
 async function bootstrap(): Promise<void> {
+  console.info('[CalendarCore]', PREVIEW_VERSION, 'script started');
+  notify('info', 'V3 测试版已启动，正在检查历法变量');
   window.CalendarCoreRuntime?.destroy();
 
   const shell = await mountSillyTavernCalendarShell({
@@ -133,6 +149,7 @@ async function bootstrap(): Promise<void> {
       await shell.activateSession(session);
       if (disposed) return;
       initialized = true;
+      notify('success', '世界历法已载入，可以打开日历');
       if (retryInterval !== undefined) {
         window.clearInterval(retryInterval);
         retryInterval = undefined;
@@ -143,6 +160,7 @@ async function bootstrap(): Promise<void> {
       shell.showPending('历法数据已读取，但日历加载失败：' + message);
       if (lastUnexpectedError !== message) {
         console.warn('[CalendarCore] Waiting to recover from initialization error', error);
+        notify('error', '历法数据加载遇到问题：' + message);
         lastUnexpectedError = message;
       }
     } finally {
@@ -172,4 +190,7 @@ async function bootstrap(): Promise<void> {
 
 void bootstrap().catch(error => {
   console.error('[CalendarCore] Failed to mount calendar shell', error);
+  const message = error instanceof Error ? error.message : String(error);
+  notify('error', '未能建立日历浮窗：' + message);
 });
+
