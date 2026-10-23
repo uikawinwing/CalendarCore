@@ -32,3 +32,7 @@ https://raw.githubusercontent.com/uikawinwing/CalendarCore/feat/mobile-v3-st-pre
 
 本次未接入事件编辑、筛选、业务私有 payload 或新的 Host 协议。
 
+
+## Worldbook Profile preview
+
+The `feat/fate-poem-profile` branch has moved the game-specific parser and paths into `src/profiles/fate-poem.ts`. The universal readiness adapter no longer contains them. See [profiles.md](profiles.md).

@@ -75,3 +75,12 @@ A future SillyTavern host belongs here. It may implement App ports, but App and 
 UI is not part of this layer yet.
 
 The UI should consume `CalendarAppSnapshot` and dispatch user intents back through App/module APIs instead of reading module storage directly.
+
+## Creator Profiles (optional host adapters)
+
+`src/profiles` is a separate extension seam. Its time adapters convert
+creator-specific MVU structures into the stable CalendarCore date/weekday
+contract; Core, App, Modules and renderers do not import creator Profiles.
+
+See [profiles.md](profiles.md) for the Fate Poem Worldbook mapping, source
+provenance, installation points and limits.

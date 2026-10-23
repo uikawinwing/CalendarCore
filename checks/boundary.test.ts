@@ -86,3 +86,18 @@ test('renderers depend on UI contracts, not lower implementation layers', () => 
     [],
   );
 });
+
+test('creator profiles never leak into universal Core, App, Host or UI', () => {
+  for (const layer of ['core', 'app', 'host', 'ui', 'renderers', 'modules']) {
+    assert.deepEqual(
+      findImports(join(srcRoot, layer), /from\s+['"][^'"]*profiles(?:\/|['"])/),
+      [],
+      layer + ' should not depend on creator-specific Profile implementations',
+    );
+  }
+});
+
+test('SillyTavern generic readiness cannot contain creator-specific MVU paths', () => {
+  const source = readFileSync(join(srcRoot, 'integrations', 'sillytavern', 'readiness.ts'), 'utf8');
+  assert.doesNotMatch(source, /stat_data\.世界\.时间|parseFatePoem|parseDestiny/);
+});

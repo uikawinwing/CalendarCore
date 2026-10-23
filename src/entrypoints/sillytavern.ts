@@ -24,6 +24,7 @@ import {
   mountSillyTavernCalendarShell,
 } from '../integrations/sillytavern';
 import { inspectSillyTavernCalendarReadiness } from '../integrations/sillytavern/readiness';
+import { bundledCalendarProfiles } from '../profiles';
 
 interface CalendarCoreRuntimeHandle {
   destroy(): void;
@@ -61,7 +62,7 @@ async function bootstrap(): Promise<void> {
   window.CalendarCoreRuntime?.destroy();
 
   const shell = await mountSillyTavernCalendarShell({
-    pendingMessage: '等待 stat_data.世界.时间 / calendar.now 初始化',
+    pendingMessage: '等待世界时间或日历 Profile 初始化',
     buttonLabel: '📅',
     buttonTitle: 'Calendar',
     weekdayLabels: ['日', '一', '二', '三', '四', '五', '六'],
@@ -84,7 +85,7 @@ async function bootstrap(): Promise<void> {
         return;
       }
 
-      const readiness = inspectSillyTavernCalendarReadiness(runtime);
+      const readiness = inspectSillyTavernCalendarReadiness(runtime, bundledCalendarProfiles);
       if (!readiness.ready) {
         shell.showPending(readiness.message);
         return;

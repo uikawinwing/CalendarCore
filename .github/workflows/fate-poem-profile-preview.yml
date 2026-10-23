@@ -1,0 +1,49 @@
+name: Fate Poem Profile ST preview
+
+on:
+  push:
+    branches:
+      - feat/fate-poem-profile
+    paths-ignore:
+      - dist/**
+
+permissions:
+  contents: write
+
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout profile preview
+        uses: actions/checkout@v4
+        with:
+          ref: feat/fate-poem-profile
+          persist-credentials: true
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Install
+        run: pnpm install --frozen-lockfile
+      - name: Validate
+        run: |
+          pnpm run typecheck
+          pnpm test
+      - name: Bundle
+        run: pnpm build
+      - name: Publish only this test branch
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f dist/calendar-core-sillytavern.js
+          if git diff --cached --quiet; then
+            echo "No bundle changes"
+            exit 0
+          fi
+          git commit -m "chore: bundle Fate Poem Profile ST preview [skip ci]"
+          git push origin HEAD:refs/heads/feat/fate-poem-profile
