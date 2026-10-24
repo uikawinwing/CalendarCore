@@ -8,7 +8,7 @@
   const calendar = getvar(rootPath, { defaults: { 临时: {}, 重复: {} } });
 
   // LLM 只能读取公开事件与仅 LLM 事件；缺省可公开，但显式非法可见性必须隐藏，避免泄露。
-  const isVisibleToLLM = function (event) { var v = _.get(event, '可见性'); var s = String(v == null ? '' : v).trim(); return (v === undefined || v === null || s === '') || s === '玩家与LLM' || s === '仅LLM'; };
+  const isVisibleToLLM = function (event) { var v = _.get(event, '可见性'); var s = String(v == null ? '' : v).trim(); if (!event || typeof event !== 'object') return false; var present = Object.prototype.hasOwnProperty.call(event, '可见性'); return !present || s === '玩家与LLM' || s === '仅LLM'; };
   const normalizeDisplayImportance = function (value) {
     const text = String(value || '').trim();
     if (['重要且紧急', '重要不紧急', '不重要但紧急', '不重要不紧急'].includes(text)) return text;
